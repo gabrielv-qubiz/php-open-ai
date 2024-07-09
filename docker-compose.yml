@@ -1,0 +1,37 @@
+networks:
+  local-network:
+    name: local-network
+    external: false
+
+services:
+  service-nginx:
+    container_name: service-nginx
+    image: nginx:latest
+    build: ./docker/nginx/
+    networks:
+      - local-network
+    depends_on:
+      - php-service
+    volumes:
+      - ../:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/sites/:/etc/nginx/sites-available
+      - ./docker/nginx/sites/:/etc/nginx/sites-enabled
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+      - "443:443"
+  php-service:
+    container_name: php-service
+    networks: 
+      - local-network
+    build:
+      context: ./
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - ./:/var/www/html/
+    ports:
+      - 9000:80
+
+volumes:
+  php-service:
