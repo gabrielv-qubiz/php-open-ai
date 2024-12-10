@@ -34,7 +34,7 @@ class AiClient
     {
         $assistantId = 'asst_VcmA0xoZiqckk1G4IP3fZp2u';
         $data = [
-            'instructions' => fopen('instructions.txt', 'rw+'),
+            'instructions' => file_get_contents('instructions.txt'),
         ];
 
         return $this->client->modifyAssistant($assistantId, $data);
@@ -42,7 +42,7 @@ class AiClient
 
     public function chat(): mixed
     {
-        return $this->client->chat([
+        $message = $this->client->chat([
             "model" => self::OPEN_AI_DEFAULT_MODEL,
             "messages" => [
                 [
@@ -50,22 +50,37 @@ class AiClient
                     "content" => "You are a helpful assistant."
                 ],
                 [
-                    "role" => "user",
-                    "content" => "Who won the world series in 2020?"
-                ],
-                [
                     "role" => "assistant",
-                    "content" => "The Los Angeles Dodgers won the World Series in 2020."
+                    "content" => file_get_contents('instructions.txt')
                 ],
                 [
                     "role" => "user",
-                    "content" => "Where was it played?"
-                ],
+                    "content" => '
+Is there coverage for the next situation based on the terms and conditions?
+Address: My address
+Location: bedroom
+Main Category: Audio Video
+Category: Computers and Mobiles
+Policy Type: Household
+Description: my computer was destroyed
+Format the answer as a json with the format of :
+"covered": with 1 for yes and 0 for no
+"accuracyPercent": the percent of accuracy of the answer
+"topNochAccuracy:" the percent of accuracy of the answer after validating the answer 10 times
+"message": the answer
+'
+                ]
             ],
             "temperature" => 1.0,
             "max_tokens" => 4000,
             "frequency_penalty" => 0,
             "presence_penalty" => 0,
         ]);
+
+        $x = json_decode($message);
+        return [
+            "data" => $message,
+            "response" => $x->choices[0]->message->content,
+        ];
     }
 }
